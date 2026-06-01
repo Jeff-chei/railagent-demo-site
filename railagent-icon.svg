@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>RailAgent</title>
+  <rect width="64" height="64" rx="12" fill="#10233f"/>
+  <path d="M16 18h32c3.3 0 6 2.7 6 6v18c0 3.3-2.7 6-6 6H16c-3.3 0-6-2.7-6-6V24c0-3.3 2.7-6 6-6Z" fill="#f4f8fb"/>
+  <path d="M18 24h28c1.1 0 2 .9 2 2v7H16v-7c0-1.1.9-2 2-2Z" fill="#2b7a78"/>
+  <path d="M18 38h8M38 38h8" stroke="#10233f" stroke-width="4" stroke-linecap="round"/>
+  <path d="M22 51 16 59M42 51l6 8M20 55h24" stroke="#f4f8fb" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="50" cy="16" r="7" fill="#f9b233"/>
+  <path d="M47 16h6M50 13v6" stroke="#10233f" stroke-width="2" stroke-linecap="round"/>
+</svg>
