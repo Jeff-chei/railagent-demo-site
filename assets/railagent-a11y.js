@@ -141,18 +141,32 @@
     allowA11ySpeech = false;
   }
 
+  function hideElement(element) {
+    if (!element) return;
+    element.hidden = true;
+    element.setAttribute('aria-hidden', 'true');
+    element.setAttribute('tabindex', '-1');
+    element.style.setProperty('display', 'none', 'important');
+  }
+
   function removeLegacyVoiceControls() {
     document.querySelectorAll('.mp-voice-actions, .mp-voice-bar, .mp-voice-btn, .mp-voice-live').forEach((element) => {
-      element.hidden = true;
-      element.setAttribute('aria-hidden', 'true');
+      hideElement(element);
+    });
+
+    document.querySelectorAll('.mp-card, .mp-notice, article, section, div').forEach((element) => {
+      const label = textOf(element);
+      const hasLegacyVoiceText = /無法辨識指令|語音指令|再講一次|停止語音|voice command|read again|stop speech/i.test(label);
+      const hasLegacyVoiceControl = element.querySelector('.mp-voice-actions, .mp-voice-bar, .mp-voice-btn, .mp-voice-live');
+      if (hasLegacyVoiceText && hasLegacyVoiceControl && !element.closest('.mp-access-vision')) {
+        hideElement(element);
+      }
     });
 
     document.querySelectorAll('button').forEach((button) => {
       const label = textOf(button);
       if (/語音|朗讀|voice|speech|speak/i.test(label) && !button.closest('.mp-access-vision')) {
-        button.hidden = true;
-        button.setAttribute('aria-hidden', 'true');
-        button.setAttribute('tabindex', '-1');
+        hideElement(button);
       }
     });
   }
