@@ -149,6 +149,15 @@
     element.style.setProperty('display', 'none', 'important');
   }
 
+  function restoreAppContainers() {
+    document.querySelectorAll('#root, .mp-shell, .mp-shell-gate, .mp-gate, .mp-gate-hero, .mp-gate-cards, .mp-access-footer').forEach((element) => {
+      element.hidden = false;
+      element.removeAttribute('aria-hidden');
+      element.removeAttribute('tabindex');
+      element.style.removeProperty('display');
+    });
+  }
+
   function restoreVisionFriendlyControl() {
     document.querySelectorAll('.mp-access-vision, .mp-access-btn').forEach((element) => {
       const label = textOf(element);
@@ -161,19 +170,15 @@
   }
 
   function removeLegacyVoiceControls() {
+    restoreAppContainers();
     restoreVisionFriendlyControl();
 
     document.querySelectorAll('.mp-voice-actions, .mp-voice-bar, .mp-voice-btn, .mp-voice-live').forEach((element) => {
-      hideElement(element);
-    });
-
-    document.querySelectorAll('.mp-card, .mp-notice, article, section, div').forEach((element) => {
-      const label = textOf(element);
-      const hasLegacyVoiceText = /無法辨識指令|語音指令|再講一次|停止語音|voice command|read again|stop speech/i.test(label);
-      const hasLegacyVoiceControl = element.querySelector('.mp-voice-actions, .mp-voice-bar, .mp-voice-btn, .mp-voice-live');
-      if (hasLegacyVoiceText && hasLegacyVoiceControl && !element.closest('.mp-access-vision')) {
-        hideElement(element);
+      const panel = element.closest('.mp-card, .mp-notice, article');
+      if (panel && !panel.matches('#root, .mp-shell, .mp-shell-gate, .mp-gate')) {
+        hideElement(panel);
       }
+      hideElement(element);
     });
 
     document.querySelectorAll('button').forEach((button) => {
