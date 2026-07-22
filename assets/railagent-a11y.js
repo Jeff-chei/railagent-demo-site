@@ -102,6 +102,29 @@
     th: 'เลือกภาษา'
   };
 
+  const fixedAudioAssets = {
+    tw: {
+      language: '/railagent-demo-site/assets/voice/tw-language.wav',
+      passenger: '/railagent-demo-site/assets/voice/tw-passenger.wav',
+      staff: '/railagent-demo-site/assets/voice/tw-staff.wav'
+    },
+    hak: {
+      language: '/railagent-demo-site/assets/voice/hak-language.wav',
+      passenger: '/railagent-demo-site/assets/voice/hak-passenger.wav',
+      staff: '/railagent-demo-site/assets/voice/hak-staff.wav'
+    },
+    vi: {
+      language: '/railagent-demo-site/assets/voice/vi-language.wav',
+      passenger: '/railagent-demo-site/assets/voice/vi-passenger.wav',
+      staff: '/railagent-demo-site/assets/voice/vi-staff.wav'
+    },
+    th: {
+      language: '/railagent-demo-site/assets/voice/th-language.wav',
+      passenger: '/railagent-demo-site/assets/voice/th-passenger.wav',
+      staff: '/railagent-demo-site/assets/voice/th-staff.wav'
+    }
+  };
+
   function textOf(element) {
     return (element && element.textContent ? element.textContent : '').replace(/\s+/g, ' ').trim();
   }
@@ -154,7 +177,12 @@
   function speechFor(element) {
     const chip = languageChipFor(element);
     if (chip) {
-      return { text: chip.language.spoken, lang: chip.language.lang };
+      return {
+        text: chip.language.spoken,
+        lang: chip.language.lang,
+        languageCode: chip.language.code,
+        cue: 'language'
+      };
     }
 
     const role = roleFor(element);
@@ -162,7 +190,9 @@
     const language = activeLanguage();
     return {
       text: roleLabels[role.role][language.code],
-      lang: language.lang
+      lang: language.lang,
+      languageCode: language.code,
+      cue: role.role
     };
   }
 
@@ -199,17 +229,44 @@
 
   let lastSpeechKey = '';
   let lastSpeechAt = 0;
+  let activeAudio = null;
 
-  function speak(payload) {
-    if (!payload || !payload.text || !nativeSpeak || typeof window.SpeechSynthesisUtterance !== 'function') return;
+  function stopActiveAudio() {
+    if (!activeAudio) return;
+    activeAudio.pause();
+    activeAudio.currentTime = 0;
+    activeAudio = null;
+  }
+
+  function speak(payload, force) {
+    if (!payload || !payload.text) return;
 
     const now = Date.now();
-    const speechKey = `${payload.lang}:${payload.text}`;
-    if (speechKey === lastSpeechKey && now - lastSpeechAt < 550) return;
+    const speechKey = `${payload.languageCode}:${payload.cue}:${payload.text}`;
+    if (!force && speechKey === lastSpeechKey && now - lastSpeechAt < 550) return;
     lastSpeechKey = speechKey;
     lastSpeechAt = now;
 
-    synthesis.cancel();
+    if (synthesis) synthesis.cancel();
+    stopActiveAudio();
+
+    const audioPath = fixedAudioAssets[payload.languageCode]?.[payload.cue];
+    if (audioPath && typeof window.Audio === 'function') {
+      document.documentElement.setAttribute('data-railagent-audio', `${payload.languageCode}:${payload.cue}`);
+      const audio = new window.Audio(audioPath);
+      audio.preload = 'auto';
+      activeAudio = audio;
+      const playback = audio.play();
+      if (playback && typeof playback.catch === 'function') {
+        playback.catch(() => {
+          if (activeAudio === audio) activeAudio = null;
+        });
+      }
+      return;
+    }
+
+    document.documentElement.removeAttribute('data-railagent-audio');
+    if (!nativeSpeak || typeof window.SpeechSynthesisUtterance !== 'function') return;
     if (typeof synthesis.resume === 'function') synthesis.resume();
 
     const utterance = new window.SpeechSynthesisUtterance(payload.text);
@@ -285,7 +342,7 @@
 
   function announceEvent(event) {
     const payload = speechFor(event.target);
-    if (payload) speak(payload);
+    if (payload) speak(payload, event.type === 'click');
   }
 
   let enhancementScheduled = false;
