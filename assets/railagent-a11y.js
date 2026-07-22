@@ -227,9 +227,24 @@
     lastSpokenAt = now;
 
     window.speechSynthesis.cancel();
+    if (typeof window.speechSynthesis.resume === 'function') {
+      window.speechSynthesis.resume();
+    }
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = lang;
     utterance.rate = 0.95;
+    allowA11ySpeech = true;
+    window.speechSynthesis.speak(utterance);
+    allowA11ySpeech = false;
+  }
+
+  function unlockSpeechEngine() {
+    if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) return;
+    if (typeof window.speechSynthesis.resume === 'function') {
+      window.speechSynthesis.resume();
+    }
+    const utterance = new SpeechSynthesisUtterance('');
+    utterance.lang = activeLanguageInfo().lang;
     allowA11ySpeech = true;
     window.speechSynthesis.speak(utterance);
     allowA11ySpeech = false;
@@ -287,6 +302,7 @@
   function enableTalkbackSimulation() {
     talkbackEnabled = true;
     document.documentElement.setAttribute('data-railagent-talkback', 'on');
+    unlockSpeechEngine();
     const vision = document.querySelector('.mp-access-vision');
     speak(speechFor(vision) || { text: '視障友善', lang: activeLanguageInfo().lang });
   }
@@ -394,7 +410,7 @@
 
   document.addEventListener('click', (event) => {
     if (event.target && event.target.closest && event.target.closest('.mp-access-vision')) {
-      setTimeout(enableTalkbackSimulation, 0);
+      enableTalkbackSimulation();
     }
     setTimeout(scheduleEnhance, 0);
   }, true);
