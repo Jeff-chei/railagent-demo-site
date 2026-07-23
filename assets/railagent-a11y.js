@@ -249,6 +249,26 @@
     return null;
   }
 
+  function lostItemFieldFor(element) {
+    if (!element || !element.closest) return null;
+    const field = element.closest('[data-service-page="lost-item"] .mp-field');
+    if (!field) return null;
+
+    const input = field.querySelector('input, select, textarea');
+    const guide = field.querySelector('.mp-field-guide');
+    const label = field.querySelector('label');
+    const text = textOf(guide) || [textOf(label), input?.getAttribute('placeholder') || '']
+      .filter(Boolean)
+      .join('。');
+    if (!text) return null;
+
+    return {
+      element: field,
+      text,
+      cue: `lost-item-field:${input?.id || textOf(label)}`
+    };
+  }
+
   function speechFor(element) {
     const chip = languageChipFor(element);
     if (chip) {
@@ -268,6 +288,17 @@
         lang: language.lang,
         languageCode: language.code,
         cue: homeControl.cue
+      };
+    }
+
+    const lostItemField = lostItemFieldFor(element);
+    if (lostItemField) {
+      const language = activeLanguage();
+      return {
+        text: lostItemField.text,
+        lang: language.lang,
+        languageCode: language.code,
+        cue: lostItemField.cue
       };
     }
 
@@ -327,6 +358,7 @@
   function speak(payload, force) {
     if (!payload || !payload.text) return;
 
+    document.documentElement.setAttribute('data-railagent-last-speech-cue', payload.cue);
     const now = Date.now();
     const speechKey = `${payload.languageCode}:${payload.cue}:${payload.text}`;
     if (!force && speechKey === lastSpeechKey && now - lastSpeechAt < 550) return;
@@ -428,6 +460,13 @@
         if (!control.getAttribute('aria-label')) control.setAttribute('aria-label', textOf(control));
       });
     }
+
+    document.querySelectorAll('[data-service-page="lost-item"] .mp-field').forEach((field) => {
+      const lostItemField = lostItemFieldFor(field);
+      if (!lostItemField) return;
+      field.setAttribute('data-railagent-speech-cue', lostItemField.cue);
+      field.setAttribute('lang', selectedLanguage.lang);
+    });
 
     document.querySelectorAll('.mp-access-btn.vision, .mp-access-vision').forEach((control) => {
       control.hidden = false;
