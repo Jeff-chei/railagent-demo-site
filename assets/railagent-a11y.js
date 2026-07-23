@@ -242,7 +242,7 @@
     const navigationButton = element.closest('.mp-bottom-nav button');
     if (navigationButton) {
       const buttons = Array.from(document.querySelectorAll('.mp-bottom-nav button'));
-      const cues = ['nav-home', 'nav-cases', 'nav-info', 'nav-me'];
+      const cues = ['nav-home', 'nav-cases', 'nav-me'];
       const cue = cues[buttons.indexOf(navigationButton)];
       if (cue) return { element: navigationButton, cue };
     }
